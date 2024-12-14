@@ -1,8 +1,11 @@
 version: 0.2
+env:
+    secret-manager:
+        TOKEN: FirstSecret:tokenforsonar
 phases:
   install:
     runtime-versions:
       java: latest
   build:
     commands:
-      - mvn verify sonar:sonar -Dsonar.projectKey=awstest_testproject -Dsonar.organization=awstest -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=6996c0bd0e7055b92c575cbc8e86c6025505f35f
+      - mvn verify sonar:sonar -Dsonar.projectKey=awstest_testproject -Dsonar.organization=awstest -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$TOKEN
