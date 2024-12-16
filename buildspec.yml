@@ -9,6 +9,16 @@ phases:
       java: latest
   build:
     commands:
+      # perform a Sonarqube SAST scan; 
+      - mvn verify sonar:sonar -Dsonar.projectKey=awstest_testproject -Dsonar.organization=awstest -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$TOKEN
+      - sleep 5
+
+      # Quality gates for SAST
+      - |- 
+        quality_status=$(curl -s -u $TOKEN: https://sonarcloud.io/api/qualitygates/project_status?projectKey=awstest_testproject | jq -r '.projectStatus.status')
+        echo "SonarCloud analysistatus is $quality_status"; 
+        if [ $quality_status = "ERROR" ] ; then exit 1;fi
+
       # install the latest Snyk CLI from GitHub Releases
       - latest_version=$(curl -Is "https://github.com/snyk/cli/releases/latest" | grep "^location" | sed 's#.*tag/##g' | tr -d "\r")
       - snyk_cli_dl_linux="https://github.com/snyk/cli/releases/download/${latest_version}/snyk-linux"
@@ -23,14 +33,6 @@ phases:
       
       # upload a snapshot of the project to Snyk for continuous monitoring
       - snyk monitor
-      
-      # perform a Sonarqube SAST scan; 
-      - mvn verify sonar:sonar -Dsonar.projectKey=awstest_testproject -Dsonar.organization=awstest -Dsonar.host.url=https://sonarcloud.io -Dsonar.token=$TOKEN
-      - sleep 5
-      - |- 
-        quality_status=$(curl -s -u $TOKEN: https://sonarcloud.io/api/qualitygates/project_status?projectKey=awstest_testproject | jq -r '.projectStatus.status')
-        echo "SonarCloud analysistatus is $quality_status"; 
-        if [ $quality_status = "ERROR" ] ; then exit 1;fi
 
       # perform a OWASP ZAP DAST scan; 
       - |-
